@@ -1,0 +1,38 @@
+name: Update Multi-Level README Stats
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - '**/README.md'  # جلوگیری از حلقه بی‌نهایت (Infinite Loop) در صورت تغییر فقط ریدمی‌ها
+  workflow_dispatch: # امکان اجرای دستی از تب Actions در گیت‌هاب
+
+permissions:
+  contents: write
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Stats Updater Script
+        run: python .github/scripts/stats_updater.py
+
+      - name: Commit and push if changes detected
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add .
+          
+          # بررسی اینکه آیا تغییری ایجاد شده است یا خیر (برای جلوگیری از کامیت خالی)
+          git diff --cached --quiet || (git commit -m "📊 Auto-update multi-level problem solving stats" && git push)
