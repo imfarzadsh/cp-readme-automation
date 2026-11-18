@@ -1,2 +1,2 @@
-<!-- START_STATS -->
-<!-- END_STATS -->
+<!-- REPO-STATS:START -->
+<!-- REPO-STATS:END -->
