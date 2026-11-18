@@ -19,6 +19,14 @@ No manual updates required—just push your code and let the automation handle t
 ## 📊 Overall Progress Dashboard
 
 <!-- START_STATS -->
+
+## 📊 Overall Progress Dashboard
+
+| Platform | Total Solved |
+| :--- | :---: |
+
+| 🔥 **Grand Total** | **0** |
+
 <!-- END_STATS -->
 
 ---
