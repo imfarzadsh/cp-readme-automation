@@ -71,10 +71,11 @@ def main():
             update_readme_section(os.path.join(sub_full_path, "README.md"), sub_readme_content)
 
         # ساخت جدول برای ریدمیِ خودِ پلتفرم (مثلاً CSES/README.md)
+        platform_rows_str = "\n".join(platform_table_rows)
         platform_md = f"Total Solved: **{platform_total}**\n\n"
         platform_md += "| # | Category / Level | Solved | Status | Directory Link |\n"
         platform_md += "| :---: | :--- | :---: | :---: | :---: |\n"
-        platform_md += "\n".join(platform_table_rows)
+        platform_md += platform_rows_str
         
         update_readme_section(os.path.join(platform_path, "README.md"), platform_md)
 
@@ -82,14 +83,14 @@ def main():
         platform_summary_rows.append(f"| 📂 **[{platform}](./{platform}/)** | **{platform_total}** |")
 
     # بروزرسانی ریدمی اصلی (Root README.md)
-    root_md = f"""
-## 📊 Overall Progress Dashboard
+    summary_rows_str = "\n".join(platform_summary_rows)
+    root_md = f"""## 📊 Overall Progress Dashboard
 
 | Platform | Total Solved |
 | :--- | :---: |
-{"\n".join(platform_summary_rows)}
-| 🔥 **Grand Total** | **{grand_total}** |
-"""
+{summary_rows_str}
+| 🔥 **Grand Total** | **{grand_total}** |"""
+    
     update_readme_section("README.md", root_md.strip())
 
 if __name__ == "__main__":
