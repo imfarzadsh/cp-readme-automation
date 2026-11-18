@@ -19,6 +19,26 @@ No manual updates required—just push your code and let the automation handle t
 ## 📊 Overall Progress Dashboard
 
 <!-- REPO-STATS:START -->
+
+### 📊 Stats
+
+| Metric | Value |
+| --- | ---: |
+| Files (total) | 10 |
+| Files in this folder | 2 |
+| Files in sub-folders | 8 |
+| Sub-folders | 8 |
+| Lines (text files) | 198 |
+| Total size | 6.1 KB |
+
+| Extension | Files | Lines | Size |
+| --- | ---: | ---: | ---: |
+| `.cpp` | 4 | 0 | 0 B |
+| `.py` | 3 | 137 | 4.1 KB |
+| `(no ext)` | 1 | 21 | 1.0 KB |
+| `.txt` | 1 | 2 | 93 B |
+| `.yml` | 1 | 38 | 857 B |
+
 <!-- REPO-STATS:END -->
 
 ---
