@@ -1,7 +1,5 @@
 test1
 <!-- REPO-STATS:START -->
-<<<<<<< HEAD
-=======
 
 ## 📊 Stats
 
@@ -13,6 +11,5 @@ test1
 | 0002 | test | [Open](test.py) |
 | 0003 | test2 | [Open](test2.py) |
 
->>>>>>> 60334058924577c661384b5d19df337b1b49607d
 <!-- REPO-STATS:END -->
 tesy2
