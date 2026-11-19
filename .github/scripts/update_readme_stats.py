@@ -1,109 +1,154 @@
 #!/usr/bin/env python3
 """
-For every README.md in the repo, compute stats about the files that live in the
-same folder and all sub-folders, and write them between these markers:
+Updates every README.md in the repo with a stats block placed between:
 
     <!-- REPO-STATS:START -->
     <!-- REPO-STATS:END -->
 
-If a README has no markers, the block is appended to the end of the file.
-Only git-tracked files are counted (so .gitignore'd files, node_modules, etc.
-are skipped automatically). README.md files themselves are not counted,
-which prevents the action from changing its own numbers.
+(If the markers don't exist, the block is appended to the end of the README.)
+
+Layouts:
+  1) Root README
+       - total solved per extension
+       - table: Platforms | Solved Count | Directory Link   (top-level folders)
+       - table: last 5 pushed code files
+  2) README in a folder that has sub-folders
+       - total solved per extension
+       - table: Category | Solved Count | Directory Link
+  3) README in a folder with no sub-folders
+       - total solved per extension
+       - table: Number | Problem | Directory Link
+         (file names look like [Index]-[ProblemID]-[ProblemName].ext,
+          only ProblemName is shown)
 """
 import os
 import re
 import subprocess
-from collections import defaultdict
+from collections import Counter
+from urllib.parse import quote
 
 START = "<!-- REPO-STATS:START -->"
 END = "<!-- REPO-STATS:END -->"
 README_NAMES = {"readme.md", "readme.markdown"}
+RECENT_LIMIT = 5
+
+# Extensions counted as "solved" code files. Add/remove as you like.
+CODE_EXTS = {
+    ".cpp", ".cc", ".c", ".h", ".hpp", ".py", ".java", ".js", ".ts",
+    ".cs", ".go", ".rs", ".kt", ".rb", ".php", ".swift", ".sql",
+    ".scala", ".dart", ".sh",
+}
 
 
+# ---------------------------------------------------------------- helpers
 def tracked_files():
-    out = subprocess.check_output(["git", "ls-files", "-z"]).decode("utf-8", "replace")
-    return [p for p in out.split("\0") if p and os.path.isfile(p)]
+    out = subprocess.check_output(["git", "-c", "core.quotepath=false", "ls-files", "-z"])
+    return [p for p in out.decode("utf-8", "replace").split("\0") if p and os.path.isfile(p)]
 
 
 def is_readme(path):
     return os.path.basename(path).lower() in README_NAMES
 
 
-def file_info(path):
-    """Return (size_bytes, line_count or None for binary files)."""
-    size = os.path.getsize(path)
-    try:
-        with open(path, "rb") as f:
-            data = f.read()
-    except OSError:
-        return size, None
-    if b"\0" in data[:8000]:
-        return size, None
-    lines = data.count(b"\n")
-    if data and not data.endswith(b"\n"):
-        lines += 1
-    return size, lines
-
-
-def human_size(n):
-    for unit in ("B", "KB", "MB", "GB"):
-        if n < 1024 or unit == "GB":
-            return f"{n:.0f} {unit}" if unit == "B" else f"{n:.1f} {unit}"
-        n /= 1024
+def is_hidden(path):
+    return any(part.startswith(".") for part in path.split("/"))
 
 
 def ext_of(path):
-    name = os.path.basename(path)
-    ext = os.path.splitext(name)[1].lower()
-    return ext if ext else "(no ext)"
+    return os.path.splitext(path)[1].lower()
 
 
-def build_block(folder, files, info):
+def esc(text):
+    return text.replace("|", "\\|")
+
+
+def link(target, from_folder, is_dir):
+    rel = os.path.relpath(target, from_folder or ".").replace(os.sep, "/")
+    url = quote(rel, safe="/")
+    if is_dir:
+        url += "/"
+    return f"[Open]({url})"
+
+
+def problem_name(path):
+    """[Index]-[ProblemID]-[ProblemName].ext  ->  ProblemName"""
+    stem = os.path.splitext(os.path.basename(path))[0]
+    parts = stem.split("-", 2)
+    return parts[2] if len(parts) == 3 and parts[2] else stem
+
+
+def sort_key(path):
+    base = os.path.basename(path)
+    m = re.match(r"\d+", base)
+    return (int(m.group()) if m else float("inf"), base.lower())
+
+
+def summary_line(files):
+    counts = Counter(ext_of(f).lstrip(".") for f in files)
+    parts = " · ".join(f"`{e}`: {n}" for e, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])))
+    line = f"**Total Solved: {len(files)}**"
+    return f"{line} — {parts}" if parts else line
+
+
+def recent_code_files(valid, limit=RECENT_LIMIT):
+    """Most recently added/modified/renamed code files, newest first."""
+    proc = subprocess.Popen(
+        ["git", "-c", "core.quotepath=false", "log", "--diff-filter=AMR",
+         "--name-only", "--pretty=format:"],
+        stdout=subprocess.PIPE, text=True, encoding="utf-8", errors="replace",
+    )
+    found = []
+    for line in proc.stdout:
+        name = line.rstrip("\n")
+        if name and name in valid and name not in found:
+            found.append(name)
+            if len(found) == limit:
+                break
+    proc.terminate()
+    proc.wait()
+    return found
+
+
+# ---------------------------------------------------------------- blocks
+def folder_table(folder, scoped, subs, first_header):
     prefix = folder + "/" if folder else ""
-    scoped = [f for f in files if f.startswith(prefix) and not is_readme(f)]
+    rows = [f"| {first_header} | Solved Count | Directory Link |", "| --- | ---: | --- |"]
+    for name in subs:
+        sub_path = prefix + name
+        count = sum(1 for f in scoped if f.startswith(sub_path + "/"))
+        rows.append(f"| {esc(name)} | {count} | {link(sub_path, folder, True)} |")
+    return rows
 
-    direct = [f for f in scoped if "/" not in f[len(prefix):]]
-    nested = [f for f in scoped if "/" in f[len(prefix):]]
 
-    dirs = set()
-    for f in scoped:
-        rel = f[len(prefix):]
-        parts = rel.split("/")[:-1]
-        for i in range(1, len(parts) + 1):
-            dirs.add("/".join(parts[:i]))
+def file_table(folder, scoped):
+    rows = ["| Number | Problem | Directory Link |", "| ---: | --- | --- |"]
+    for i, f in enumerate(sorted(scoped, key=sort_key), start=1):
+        rows.append(f"| {i:04d} | {esc(problem_name(f))} | {link(f, folder, False)} |")
+    return rows
 
-    total_size = sum(info[f][0] for f in scoped)
-    total_lines = sum(info[f][1] or 0 for f in scoped)
 
-    by_ext = defaultdict(lambda: [0, 0, 0])  # files, lines, size
-    for f in scoped:
-        size, lines = info[f]
-        row = by_ext[ext_of(f)]
-        row[0] += 1
-        row[1] += lines or 0
-        row[2] += size
+def build_block(folder, code, recent):
+    prefix = folder + "/" if folder else ""
+    scoped = [f for f in code if f.startswith(prefix)]
+    subs = sorted({f[len(prefix):].split("/")[0] for f in scoped if "/" in f[len(prefix):]},
+                  key=str.lower)
 
-    out = [START, "", "### 📊 Stats", ""]
-    out += [
-        "| Metric | Value |",
-        "| --- | ---: |",
-        f"| Files (total) | {len(scoped)} |",
-        f"| Files in this folder | {len(direct)} |",
-        f"| Files in sub-folders | {len(nested)} |",
-        f"| Sub-folders | {len(dirs)} |",
-        f"| Lines (text files) | {total_lines:,} |",
-        f"| Total size | {human_size(total_size)} |",
-        "",
-    ]
-    if by_ext:
-        out += [
-            "| Extension | Files | Lines | Size |",
-            "| --- | ---: | ---: | ---: |",
-        ]
-        for ext, (n, lines, size) in sorted(by_ext.items(), key=lambda kv: (-kv[1][0], kv[0])):
-            out.append(f"| `{ext}` | {n} | {lines:,} | {human_size(size)} |")
+    out = [START, "", "## 📊 Stats", "", summary_line(scoped), ""]
+
+    if subs:
+        out += folder_table(folder, scoped, subs, "Platforms" if not folder else "Category")
         out.append("")
+        if not folder and recent:
+            out += [f"### 🕒 Last {len(recent)} pushed solutions", "",
+                    "| Problem | Directory Link |", "| --- | --- |"]
+            for f in recent:
+                out.append(f"| {esc(problem_name(f))} | {link(f, folder, False)} |")
+            out.append("")
+    else:
+        direct = [f for f in scoped if "/" not in f[len(prefix):]]
+        out += file_table(folder, direct)
+        out.append("")
+
     out.append(END)
     return "\n".join(out)
 
@@ -127,10 +172,13 @@ def update_readme(path, block):
 
 def main():
     files = tracked_files()
-    info = {f: file_info(f) for f in files if not is_readme(f)}
-    for readme in [f for f in files if is_readme(f)]:
+    code = [f for f in files
+            if not is_hidden(f) and not is_readme(f) and ext_of(f) in CODE_EXTS]
+    recent = recent_code_files(set(code))
+
+    for readme in [f for f in files if is_readme(f) and not is_hidden(f)]:
         folder = os.path.dirname(readme)
-        update_readme(readme, build_block(folder, list(info), info))
+        update_readme(readme, build_block(folder, code, recent))
 
 
 if __name__ == "__main__":
