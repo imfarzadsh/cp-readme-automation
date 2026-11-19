@@ -1,18 +1,11 @@
 <!-- REPO-STATS:START -->
 
-### 📊 Stats
+## 📊 Stats
 
-| Metric | Value |
-| --- | ---: |
-| Files (total) | 3 |
-| Files in this folder | 0 |
-| Files in sub-folders | 3 |
-| Sub-folders | 1 |
-| Lines (text files) | 0 |
-| Total size | 0 B |
+**Total Solved: 3** — `cpp`: 3
 
-| Extension | Files | Lines | Size |
-| --- | ---: | ---: | ---: |
-| `.cpp` | 3 | 0 | 0 B |
+| Category | Solved Count | Directory Link |
+| --- | ---: | --- |
+| Introductory Problems | 3 | [Open](Introductory%20Problems/) |
 
 <!-- REPO-STATS:END -->

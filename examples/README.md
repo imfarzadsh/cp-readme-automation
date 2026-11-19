@@ -1,19 +1,12 @@
 <!-- REPO-STATS:START -->
 
-### 📊 Stats
+## 📊 Stats
 
-| Metric | Value |
-| --- | ---: |
-| Files (total) | 6 |
-| Files in this folder | 0 |
-| Files in sub-folders | 6 |
-| Sub-folders | 4 |
-| Lines (text files) | 0 |
-| Total size | 0 B |
+**Total Solved: 6** — `cpp`: 4 · `py`: 2
 
-| Extension | Files | Lines | Size |
-| --- | ---: | ---: | ---: |
-| `.cpp` | 4 | 0 | 0 B |
-| `.py` | 2 | 0 | 0 B |
+| Category | Solved Count | Directory Link |
+| --- | ---: | --- |
+| Codeforces | 3 | [Open](Codeforces/) |
+| CSES | 3 | [Open](CSES/) |
 
 <!-- REPO-STATS:END -->

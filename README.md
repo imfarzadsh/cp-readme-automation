@@ -20,24 +20,23 @@ No manual updates required—just push your code and let the automation handle t
 
 <!-- REPO-STATS:START -->
 
-### 📊 Stats
+## 📊 Stats
 
-| Metric | Value |
-| --- | ---: |
-| Files (total) | 10 |
-| Files in this folder | 2 |
-| Files in sub-folders | 8 |
-| Sub-folders | 8 |
-| Lines (text files) | 198 |
-| Total size | 6.1 KB |
+**Total Solved: 6** — `cpp`: 4 · `py`: 2
 
-| Extension | Files | Lines | Size |
-| --- | ---: | ---: | ---: |
-| `.cpp` | 4 | 0 | 0 B |
-| `.py` | 3 | 137 | 4.1 KB |
-| `(no ext)` | 1 | 21 | 1.0 KB |
-| `.txt` | 1 | 2 | 93 B |
-| `.yml` | 1 | 38 | 857 B |
+| Platforms | Solved Count | Directory Link |
+| --- | ---: | --- |
+| examples | 6 | [Open](examples/) |
+
+### 🕒 Last 5 pushed solutions
+
+| Problem | Directory Link |
+| --- | --- |
+| test | [Open](examples/CSES/Introductory%20Problems/test.cpp) |
+| test2 | [Open](examples/CSES/Introductory%20Problems/test2.cpp) |
+| test3 | [Open](examples/CSES/Introductory%20Problems/test3.cpp) |
+| test | [Open](examples/Codeforces/800/test.cpp) |
+| test | [Open](examples/Codeforces/800/test.py) |
 
 <!-- REPO-STATS:END -->
 
