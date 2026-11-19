@@ -1,16 +1,10 @@
-name: Update README stats
+name: README stats (reusable)
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: write
-
-concurrency:
-  group: readme-stats
-  cancel-in-progress: true
 
 jobs:
   update-stats:
@@ -20,15 +14,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/checkout@v4
+        with:
+          repository: imfarzadsh/cp-readme-automation.git
+          path: .stats-tool
+          persist-credentials: false
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Generate stats
-        run: python .github/scripts/update_readme_stats.py
+        run: python .stats-tool/.github/scripts/update_readme_stats.py
 
       - name: Commit changes
         run: |
+          rm -rf .stats-tool
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
