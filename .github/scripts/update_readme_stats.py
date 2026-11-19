@@ -29,7 +29,7 @@ from urllib.parse import quote
 
 START = "<!-- REPO-STATS:START -->"
 END = "<!-- REPO-STATS:END -->"
-README_NAMES = {"readme.md", "readme.markdown"}
+README_RE = re.compile(r"^readme([-_.][a-z0-9_-]+)?\.(md|markdown)$", re.IGNORECASE)
 RECENT_LIMIT = 5
 
 # Extensions counted as "solved" code files. Add/remove as you like.
@@ -47,7 +47,7 @@ def tracked_files():
 
 
 def is_readme(path):
-    return os.path.basename(path).lower() in README_NAMES
+    return bool(README_RE.match(os.path.basename(path)))
 
 
 def is_hidden(path):
